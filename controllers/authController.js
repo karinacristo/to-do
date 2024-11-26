@@ -1,34 +1,36 @@
+// controllers/authController.js
 const User = require('../models/user');
-const jwt = require('jsonwebtoken');
+const generateToken = require('../utils/generateToken');
 
-// Registro de novo usuário
-exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const user = await User.create({ name, email, password });
-    res.status(201).json({ message: "Usuário registrado com sucesso!" });
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao registrar usuário", error });
-  }
-};
-
-// Login do usuário
+// Rota de login
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // Verifica se o usuário existe
     const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: "Credenciais inválidas!" });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Usuário não encontrado' });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d'
+    // Verifica a senha (assumindo que você tenha uma função para comparar a senha)
+    const isMatch = await user.matchPassword(password); // Essa função deve ser criada no model User
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Senha incorreta' });
+    }
+
+    // Gerar o token
+    const token = generateToken(user);
+
+    // Enviar o token como resposta
+    res.json({
+      message: 'Login bem-sucedido',
+      token
     });
 
-    res.status(200).json({ token });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao realizar login", error });
+    res.status(500).json({ message: 'Erro no servidor', error });
   }
 };

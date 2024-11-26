@@ -1,7 +1,8 @@
+// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authRoutes'); // Importa as rotas de autenticação
 const taskRoutes = require('./routes/taskRoutes');
 
 dotenv.config();
@@ -20,7 +21,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   .catch((error) => console.error("Erro na conexão com o MongoDB", error));
 
 // Rotas
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes); // Inclui a rota de login
 app.use('/api/tasks', taskRoutes);
 
 // Iniciar servidor
