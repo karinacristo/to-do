@@ -1,6 +1,6 @@
 // models/user.js
-const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -22,5 +22,6 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-const User = mongoose.model('User', userSchema);
+// Definir o modelo, mas verificando se já foi definido antes
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 module.exports = User;

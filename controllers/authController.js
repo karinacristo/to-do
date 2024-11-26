@@ -1,9 +1,11 @@
 // controllers/authController.js
-const User = require('../models/user');
-const generateToken = require('../utils/generateToken');
+const User = require('../models/user'); // Modelo do usuário
+const jwt = require('jsonwebtoken'); // Para gerar o token JWT
+const dotenv = require('dotenv');
+dotenv.config(); // Carregar variáveis de ambiente
 
-// Rota de login
-exports.login = async (req, res) => {
+// Função de login
+const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -14,23 +16,51 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Usuário não encontrado' });
     }
 
-    // Verifica a senha (assumindo que você tenha uma função para comparar a senha)
-    const isMatch = await user.matchPassword(password); // Essa função deve ser criada no model User
-
-    if (!isMatch) {
+    // Verifica se a senha está correta
+    if (!(await user.matchPassword(password))) {
       return res.status(400).json({ message: 'Senha incorreta' });
     }
 
-    // Gerar o token
-    const token = generateToken(user);
-
-    // Enviar o token como resposta
-    res.json({
-      message: 'Login bem-sucedido',
-      token
+    // Gera o token JWT para o usuário
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
     });
 
+    // Retorna o token
+    res.json({ token });
   } catch (error) {
-    res.status(500).json({ message: 'Erro no servidor', error });
+    console.error('Erro no login:', error); // Log do erro
+    res.status(500).json({ message: 'Erro no login', error: error.message });
   }
 };
+
+// Função de cadastro (signup)
+const signup = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Verifica se já existe um usuário com o mesmo e-mail
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email já cadastrado' });
+    }
+
+    // Cria o novo usuário
+    const newUser = new User({ email, password });
+    await newUser.save(); // A senha será criptografada no middleware "pre('save')"
+
+    // Gera o token JWT para o novo usuário
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // Retorna o token
+    res.status(201).json({ token });
+  } catch (error) {
+    console.error('Erro ao criar o usuário:', error); // Log do erro
+    res.status(500).json({ message: 'Erro ao criar o usuário', error: error.message });
+  }
+};
+
+module.exports = { login, signup };

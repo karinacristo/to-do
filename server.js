@@ -13,10 +13,7 @@ const app = express();
 app.use(express.json()); // Para analisar requisições com JSON
 
 // Conexão com o banco de dados
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((error) => console.error("Erro na conexão com o MongoDB", error));
 

@@ -3,8 +3,8 @@ const Task = require('../models/task');
 
 // Validações para criar uma tarefa
 const validateTask = [
-  body('title').notEmpty().withMessage('O título é obrigatório'),
-  body('description').notEmpty().withMessage('A descrição é obrigatória'),
+  body('title').notEmpty().withMessage('O título é obrigatório').isLength({ min: 3 }).withMessage('O título deve ter no mínimo 3 caracteres'),
+  body('description').optional().isLength({ max: 500 }).withMessage('A descrição deve ter no máximo 500 caracteres'),
 ];
 
 // Criar uma nova tarefa
@@ -20,10 +20,20 @@ exports.createTask = [
     const { title, description } = req.body;
 
     try {
-      const task = new Task({ title, description, user: req.user.id });
+      // Cria uma nova tarefa associando ao ID do usuário
+      const task = new Task({
+        title,
+        description,
+        user: req.user.id, // Certifique-se que req.user.id vem do JWT e está correto
+      });
+      
+      // Salva a tarefa no banco de dados
       await task.save();
+      
+      // Retorna a tarefa criada com status 201
       res.status(201).json(task);
     } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
       res.status(500).json({ message: "Erro ao criar tarefa", error });
     }
   }
@@ -46,7 +56,7 @@ exports.updateTask = async (req, res) => {
 
   try {
     const task = await Task.findOneAndUpdate(
-      { _id: taskId, user: req.user.id },
+      { _id: taskId, user: req.user.id }, // Garantir que o usuário seja o proprietário da tarefa
       { title, description, completed },
       { new: true }
     );
