@@ -47,7 +47,12 @@ const signup = async (req, res) => {
     }
 
     // Cria o novo usuário
-    const newUser = new User({ email, password });
+    const newUser = new User({
+      email,
+      password,
+    });
+
+    // Salva o novo usuário no banco de dados
     await newUser.save(); // A senha será criptografada no middleware "pre('save')"
 
     // Gera o token JWT para o novo usuário

@@ -1,14 +1,12 @@
+// routes/taskRoutes.js
 const express = require('express');
-const { createTask, getTasks, updateTask, deleteTask } = require('../controllers/taskController');
-const { protect } = require('../middleware/authMiddleware');
+const { createTask, getTasks } = require('../controllers/taskController');  // Importando o controller de tarefas
 const router = express.Router();
 
-router.route('/')
-  .get(protect, getTasks)  // Rota para obter as tarefas
-  .post(protect, createTask); // Rota para criar uma nova tarefa
+// Rota para criar uma tarefa (POST)
+router.post('/', createTask);
 
-router.route('/:taskId')
-  .put(protect, updateTask) // Rota para atualizar tarefa
-  .delete(protect, deleteTask); // Rota para deletar tarefa
+// Rota para listar as tarefas do usuário (GET)
+router.get('/', getTasks);
 
 module.exports = router;
